@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MISBAH - L'Intelligence de la Lumière</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0; }
+            50% { transform: translateY(-30px) rotate(180deg); opacity: 0.8; }
+        }
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(255, 215, 0, 0.6);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes glow {
+            0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+            100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.9); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-blue-800 to-yellow-600 min-h-screen flex items-center justify-center">
+    <div class="relative max-w-sm mx-auto bg-gray-900/80 backdrop-blur-md rounded-3xl p-6 shadow-2xl">
+        <div class="floating-particles">
+            <div class="particle" style="left: 20%; animation-delay: 0s;"></div>
+            <div class="particle" style="left: 50%; animation-delay: 1s;"></div>
+            <div class="particle" style="left: 80%; animation-delay: 2s;"></div>
+        </div>
+
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-yellow-400">مِصْبَاح</h1>
+            <p class="text-sm text-gray-300 opacity-80">L'Intelligence de la Lumière</p>
+        </div>
+
+        <!-- Light Orb -->
+        <div id="lightOrb" class="w-32 h-32 mx-auto rounded-full bg-gradient-radial from-yellow-400 via-yellow-600 to-orange-500 animate-pulse shadow-[0_0_50px_rgba(255,215,0,0.6)] relative">
+            <div class="absolute inset-0 bg-white/30 rounded-full transform -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2"></div>
+        </div>
+
+        <!-- Light Level -->
+        <div class="text-center my-6">
+            <div id="lightPercentage" class="text-4xl font-bold text-yellow-400">78%</div>
+            <div id="lightStatus" class="text-sm text-gray-300">Lumière intérieure - Excellente</div>
+        </div>
+
+        <!-- Daily Verse -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-4 mb-6 border border-white/10">
+            <div class="text-sm text-yellow-400 text-center">🌟 Verset du jour</div>
+            <div id="verseText" class="text-base italic text-gray-200 text-center my-2">
+                "Allah est la Lumière des cieux et de la terre..."
+            </div>
+            <div id="verseReference" class="text-xs text-gray-300 text-center">Sourate An-Nour (24:35)</div>
+            <button id="playVerse" class="mt-2 mx-auto block bg-yellow-400/20 text-yellow-400 text-xs px-3 py-1 rounded-full hover:bg-yellow-400/40">Écouter</button>
+        </div>
+
+        <!-- Prayer Times -->
+        <div class="bg-white/5 rounded-xl p-4 mb-6">
+            <h3 class="text-sm text-yellow-400 text-center mb-2">🕌 Horaires de prière</h3>
+            <div id="prayerTimes" class="space-y-2">
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-300">Fajr</span>
+                    <span class="text-white font-medium">05:30</span>
+                </div>
+                <!-- Autres prières ajoutées dynamiquement -->
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <button onclick="sendToChat('Commencer un dhikr')" class="action-btn bg-white/10 border border-white/10 rounded-xl p-4 text-white text-sm hover:bg-yellow-400/20 hover:-translate-y-1 transition-all">
+                <i class="text-2xl block mb-2">🤲</i> Dhikr
+            </button>
+            <button onclick="sendToChat('Lire un verset')" class="action-btn bg-white/10 border border-white/10 rounded-xl p-4 text-white text-sm hover:bg-yellow-400/20 hover:-translate-y-1 transition-all">
+                <i class="text-2xl block mb-2">📖</i> Coran
+            </button>
+            <button onclick="sendToChat('Trouver la Qibla')" class="action-btn bg-white/10 border border-white/10 rounded-xl p-4 text-white text-sm hover:bg-yellow-400/20 hover:-translate-y-1 transition-all">
+                <i class="text-2xl block mb-2">🧭</i> Qibla
+            </button>
+            <button onclick="sendToChat('Méditation guidée')" class="action-btn bg-white/10 border border-white/10 rounded-xl p-4 text-white text-sm hover:bg-yellow-400/20 hover:-translate-y-1 transition-all">
+                <i class="text-2xl block mb-2">🌙</i> Méditation
+            </button>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="flex justify-around bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/10">
+            <a href="#" class="nav-item text-yellow-400 flex flex-col items-center text-xs">
+                <i class="text-xl mb-1">🏠</i> Accueil
+            </a>
+            <a href="#" class="nav-item text-gray-300 flex flex-col items-center text-xs hover:text-yellow-400">
+                <i class="text-xl mb-1">📚</i> Apprentissage
+            </a>
+            <a href="#" class="nav-item text-gray-300 flex flex-col items-center text-xs hover:text-yellow-400">
+                <i class="text-xl mb-1">📊</i> Progrès
+            </a>
+            <a href="#" class="nav-item text-gray-300 flex flex-col items-center text-xs hover:text-yellow-400">
+                <i class="text-xl mb-1">⚙️</i> Réglages
+            </a>
+        </div>
+
+        <!-- Chat Button -->
+        <a href="chat.html">
+            <button class="fixed bottom-20 right-5 w-14 h-14 bg-gradient-to-r from-yellow-400 to-yellow-200 rounded-full text-gray-900 text-2xl shadow-[0_10px_25px_rgba(255,215,0,0.4)] hover:scale-110 transition-all animate-bounce">
+                💬
+            </button>
+        </a>
+    </div>
+
+    <script>
+        // Versets disponibles
+        const verses = [
+            { text: "Allah est la Lumière des cieux et de la terre...", reference: "Sourate An-Nour (24:35)" },
+            { text: "Et ne désespérez pas de la miséricorde d'Allah...", reference: "Sourate Yusuf (12:87)" },
+            { text: "Avec la difficulté vient certes la facilité...", reference: "Sourate Ash-Sharh (94:5-6)" }
+        ];
+
+        // Initialisation du Score de Lumière
+        let lightScoreValue = parseInt(localStorage.getItem('lightScoreValue')) || 78;
+
+        function updateLightLevel() {
+            const percentage = document.getElementById('lightPercentage');
+            const status = document.getElementById('lightStatus');
+            const orb = document.getElementById('lightOrb');
+
+            percentage.textContent = `${lightScoreValue}%`;
+            if (lightScoreValue >= 80) {
+                status.textContent = 'Lumière intérieure - Excellente';
+                orb.style.filter = 'brightness(1.2)';
+            } else if (lightScoreValue >= 60) {
+                status.textContent = 'Lumière intérieure - Bonne';
+                orb.style.filter = 'brightness(1)';
+            } else {
+                status.textContent = 'Lumière intérieure - À améliorer';
+                orb.style.filter = 'brightness(0.8)';
+            }
+            localStorage.setItem('lightScoreValue', lightScoreValue);
+        }
+
+        // Verset aléatoire
+        function setRandomVerse() {
+            const verseText = document.getElementById('verseText');
+            const verseReference = document.getElementById('verseReference');
+            const randomVerse = verses[Math.floor(Math.random() * verses.length)];
+            verseText.textContent = randomVerse.text;
+            verseReference.textContent = randomVerse.reference;
+        }
+
+        // Audio coranique
+        document.getElementById('playVerse').addEventListener('click', () => {
+            const reference = document.getElementById('verseReference').textContent;
+            const ayahNumber = reference.match(/\d+:\d+/)?.[0].split(':')[1] || 35;
+            const audio = new Audio(`https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayahNumber}.mp3`);
+            audio.play().catch(() => alert('Erreur de lecture audio. Vérifiez votre connexion.'));
+            lightScoreValue = Math.min(100, lightScoreValue + 5); // +5% pour écoute
+            updateLightLevel();
+        });
+
+        // Horaires de prière dynamiques
+        function fetchPrayerTimes() {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    fetch(`http://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=2`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const timings = data.data.timings;
+                            const prayerTimes = document.getElementById('prayerTimes');
+                            prayerTimes.innerHTML = `
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-300">Fajr</span>
+                                    <span class="text-white font-medium">${timings.Fajr}</span>
+                                </div>
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-300">Dhuhr</span>
+                                    <span class="text-white font-medium">${timings.Dhuhr}</span>
+                                </div>
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-300">Asr</span>
+                                    <span class="text-white font-medium">${timings.Asr}</span>
+                                </div>
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-300">Maghrib</span>
+                                    <span class="text-white font-medium">${timings.Maghrib}</span>
+                                </div>
+                                <div class="flex justify://github.com/AmineHLub/Misbah-App/blob/main/index.html
+                                <span class="text-gray-300">Isha</span>
+                                    <span class="text-white font-medium">${timings.Isha}</span>
+                                </div>
+                            `;
+                        })
+                        .catch(() => alert('Erreur lors de la récupération des horaires de prière.'));
+                },
+                () => {
+                    alert('Géolocalisation refusée. Affichage des horaires par défaut.');
+                }
+            );
+        }
+
+        // Envoi au chat
+        function sendToChat(message) {
+            localStorage.setItem('chatMessage', message);
+            lightScoreValue = Math.min(100, lightScoreValue + 2); // +2% par action
+            updateLightLevel();
+            window.location.href = 'chat.html';
+        }
+
+        // Animation des particules
+        function createParticles() {
+            const particles = document.querySelectorAll('.particle');
+            particles.forEach(particle => {
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            });
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            setRandomVerse();
+            updateLightLevel();
+            fetchPrayerTimes();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MISBAH - Chat Spirituel</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: #e8e8f0; height: 100vh; overflow: hidden; }
+        .chat-container { max-width: 400px; margin: 0 auto; background: #1a1a2e; height: 100vh; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .chat-header { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 15px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; gap: 15px; }
+        .back-btn { background: none; border: none; color: #ffd700; font-size: 20px; cursor: pointer; padding: 5px; border-radius: 50%; transition: all 0.3s ease; }
+        .back-btn:hover { background: rgba(255, 215, 0, 0.1); }
+        .ai-avatar { width: 40px; height: 40px; background: linear-gradient(45deg, #ffd700, #ffeb3b); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #1a1a2e; animation: glow 2s ease-in-out infinite alternate; }
+        .ai-info { flex: 1; }
+        .ai-name { font-size: 16px; font-weight: 600; color: #ffd700; margin-bottom: 2px; }
+        .ai-status { font-size: 12px; color: #b8b8d4; display: flex; align-items: center; gap: 5px; }
+        .status-dot { width: 8px; height: 8px; background: #4CAF50; border-radius: 50%; animation: pulse 2s infinite; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scrollbar-width: thin; scrollbar-color: rgba(255, 215, 0, 0.3) rgba(255, 255, 255, 0.1); }
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); }
+        .chat-messages::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.3); border-radius: 2px; }
+        .message { max-width: 80%; padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.4; animation: slideIn 0.3s ease-out; }
+        .message.ai { background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); color: #e8e8f0; align-self: flex-start; border-bottom-left-radius: 6px; }
+        .message.user { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; align-self: flex-end; border-bottom-right-radius: 6px; }
+        .message-time { font-size: 11px; color: #888; margin-top: 5px; text-align: right; }
+        .verse-quote { background: rgba(255, 215, 0, 0.05); border-left: 3px solid #ffd700; padding: 10px; margin: 10px 0; border-radius: 5px; font-style: italic; }
+        .verse-reference { font-size: 12px; color: #ffd700; margin-top: 5px; text-align: right; }
+        .typing-indicator { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 18px; border-bottom-left-radius: 6px; max-width: 80%; align-self: flex-start; }
+        .typing-dots { display: flex; gap: 3px; }
+        .dot { width: 6px; height: 6px; background: #ffd700; border-radius: 50%; animation: typing 1.4s infinite; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        .chat-input { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 15px 20px; display: flex; align-items: center; gap: 10px; }
+        .input-field { flex: 1; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; padding: 10px 15px; color: #fff; font-size: 14px; outline: none; transition: all 0.3s ease; }
+        .input-field:focus { border-color: #ffd700; box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2); }
+        .input-field::placeholder { color: #b8b8d4; }
+        .send-btn, .mic-btn { background: linear-gradient(45deg, #ffd700, #ffeb3b); border: none; width: 40px; height: 40px; border-radius: 50%; color: #1a1a2e; font-size: 16px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
+        .send-btn:hover, .mic-btn:hover { transform: scale(1.1); box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4); }
+        .send-btn:disabled, .mic-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .quick-actions { display: flex; gap: 10px; padding: 10px 20px; overflow-x: auto; scrollbar-width: none; }
+        .quick-actions::-webkit-scrollbar { display: none; }
+        .quick-action { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 15px; padding: 8px 12px; font-size: 12px; color: #b8b8d4; cursor: pointer; white-space: nowrap; transition: all 0.3s ease; }
+        .quick-action:hover { background: rgba(255, 215, 0, 0.2); color: #ffd700; }
+        .floating-particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; }
+        .particle { position: absolute; width: 2px; height: 2px; background: rgba(255, 215, 0, 0.3); border-radius: 50%; animation: float 8s ease-in-out infinite; }
+        .dhikr-timer { position: absolute; top: 10px; right: 10px; background: rgba(255, 215, 0, 0.1); padding: 5px 10px; border-radius: 10px; font-size: 12px; color: #ffd700; }
+        .light-score { position: absolute; top: 50px; right: 10px; background: rgba(255, 215, 0, 0.1); padding: 5px 10px; border-radius: 10px; font-size: 12px; color: #ffd700; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center; }
+        .modal-content { background: #1a1a2e; padding: 20px; border-radius: 10px; max-height: 80vh; overflow-y: auto; color: #e8e8f0; }
+        .close-btn { color: #ffd700; float: right; font-size: 20px; cursor: pointer; }
+        .settings-btn { position: absolute; top: 10px; left: 10px; background: rgba(255, 215, 0, 0.1); padding: 5px 10px; border-radius: 10px; color: #ffd700; cursor: pointer; }
+        @keyframes glow { 0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); } 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-10px); } }
+        @keyframes float { 0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0; } 50% { transform: translateY(-50px) rotate(180deg); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="floating-particles">
+            <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+            <div class="particle" style="left: 30%; animation-delay: 2s;"></div>
+            <div class="particle" style="left: 50%; animation-delay: 4s;"></div>
+        </div>
+
+        <div class="chat-header">
+            <button class="back-btn" onclick="goBack()">←</button>
+            <div class="ai-avatar">🤖</div>
+            <div class="ai-info">
+                <div class="ai-name">MISBAH Assistant</div>
+                <div class="ai-status">
+                    <span class="status-dot"></span>
+                    Guidé par le Coran
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <div class="quick-action" onclick="sendQuickMessage('Conseil du jour')">📿 Conseil du jour</div>
+            <div class="quick-action" onclick="sendQuickMessage('Dua pour le stress')">🤲 Dua pour le stress</div>
+            <div class="quick-action" onclick="sendQuickMessage('Verset motivant')">✨ Verset motivant</div>
+            <div class="quick-action" onclick="sendQuickMessage('Comment prier')">🕌 Comment prier</div>
+            <div class="quick-action" onclick="startDhikr()">🕒 Commencer Dhikr</div>
+            <div class="quick-action" onclick="stopDhikr()">⏹️ Arrêter Dhikr</div>
+            <div class="quick-action" onclick="showHistory()">📜 Historique</div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>
+            <div class="welcome-message">
+                Assalamu alaikum wa rahmatullahi wa barakatuh<br>
+                Je suis votre assistant spirituel MISBAH. Choisissez votre niveau : <button onclick="setLevel('Débutant')">Débutant</button> <button onclick="setLevel('Avancé')">Avancé</button>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <input
+                type="text"
+                class="input-field"
+                id="messageInput"
+                placeholder="Posez votre question spirituelle..."
+                onkeypress="handleKeyPress(event)"
+                aria-label="Entrez votre question spirituelle"
+            >
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()" aria-label="Envoyer le message">➤</button>
+            <button class="mic-btn" id="micBtn" onclick="toggleVoiceInput()" aria-label="Activer la reconnaissance vocale">🎙️</button>
+        </div>
+
+        <div class="dhikr-timer" id="dhikrTimer">Dhikr: 0s</div>
+        <div class="light-score" id="lightScore">Lumière: 0%</div>
+        <div class="settings-btn" onclick="showSettings()">⚙️</div>
+        <div class="modal" id="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="hideModal()">×</span>
+                <h2 id="modal-title"></h2>
+                <div id="modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const micBtn = document.getElementById('micBtn');
+        const lightScoreDisplay = document.getElementById('lightScore');
+        const dhikrTimerDisplay = document.getElementById('dhikrTimer');
+        let lightScoreValue = parseInt(localStorage.getItem('lightScoreValue')) || 50;
+        let dhikrInterval, dhikrSeconds = 0;
+        let isRecognizing = false;
+
+        // Base de données de réponses spirituelles
+        const spiritualResponses = {
+            'bonjour': 'Assalamu alaikum wa rahmatullahi wa barakatuh ! Que la paix d’Allah soit sur vous. Comment puis-je vous guider ?',
+            'stress': 'Quand vous ressentez du stress, souvenez-vous : "Et quiconque craint Allah, Il lui donnera une issue favorable" (Coran 65:2). Essayez "Hasbunallahu wa ni\'mal wakeel". Voulez-vous une dua ?',
+            'conseil du jour': 'Commencez chaque action par "Bismillah" et terminez par "Alhamdulillah". Cela transforme vos actions en adoration. Voulez-vous un autre conseil ?',
+            'dua pour le stress': 'Récitez : "Allahumma inni a\'udhu bika min al-hammi wal-hazani" (Ô Allah, je cherche refuge contre l’anxiété). Répétez avec foi. Voulez-vous une autre dua ?',
+            'verset motivant': '"Et c\'est en Allah qu\'il faut avoir confiance" (Coran 5:23). Allah est avec vous. Voulez-vous un autre verset ?',
+            'comment prier': 'La prière est un pilier. Voulez-vous un guide étape par étape ? Répondez "oui".',
+            'pardon': '"Quiconque pardonne et réforme, son salaire incombe à Allah" (Coran 42:40). Pardonnez pour vous libérer. Besoin d’un conseil ?',
+            'patience': '"Et donnez la bonne nouvelle aux endurants" (Coran 2:155). Chaque épreuve est une chance. Voulez-vous un verset ?',
+            'amour': '"Si vous aimez vraiment Allah, suivez-moi, Allah vous aimera" (Coran 3:31). Voulez-vous en savoir plus ?',
+            'mort': '"Toute âme goûtera la mort" (Coran 3:185). Préparez-vous avec le dhikr. Voulez-vous un conseil ?',
+            'commencer un dhikr': 'SubhanAllah ! Commençons un dhikr. Dites "SubhanAllah" 33 fois. Voulez-vous un minuteur ?',
+            'lire un verset': 'Voici un verset inspirant : "Allah est la Lumière des cieux..." (An-Nour 24:35). Voulez-vous l’écouter ?',
+            'trouver la qibla': 'Pour trouver la Qibla, orientez-vous vers la Kaaba à La Mecque. Voulez-vous un guide visuel ?',
+            'méditation guidée': 'Fermez les yeux, respirez profondément, et dites "La ilaha illallah". Voulez-vous une méditation plus longue ?'
+        };
+
+        const versesResponses = {
+            'lumière': { text: 'Vous demandez sur la lumière ?', verse: 'Allah est la Lumière des cieux et de la terre...', reference: 'Sourate An-Nour (24:35)' },
+            'espoir': { text: 'L’espoir est essentiel.', verse: 'Et ne désespérez pas de la miséricorde d’Allah...', reference: 'Sourate Yusuf (12:87)' },
+            'difficultés': { text: 'Dans les moments difficiles :', verse: 'Avec la difficulté vient certes la facilité...', reference: 'Sourate Ash-Sharh (94:5-6)' }
+        };
+
+        const suggestions = {
+            'stress': ['Dua pour la paix', 'Verset motivant'],
+            'conseil du jour': ['Un autre conseil', 'Verset du jour'],
+            'dua pour le stress': ['Une autre dua', 'Méditation guidée'],
+            'verset motivant': ['Un autre verset', 'Écouter le verset'],
+            'comment prier': ['Guide étape par étape', 'Horaires de prière'],
+            'pardon': ['Conseil pour pardonner', 'Verset sur la patience'],
+            'patience': ['Un autre verset', 'Dua pour la force'],
+            'amour': ['Verset sur l’amour', 'Conseil spirituel'],
+            'mort': ['Conseil pour l’au-delà', 'Dhikr recommandé'],
+            'commencer un dhikr': ['Minuteur de dhikr', 'Dua recommandée'],
+            'lire un verset': ['Écouter le verset', 'Un autre verset'],
+            'trouver la qibla': ['Guide visuel', 'Horaires de prière'],
+            'méditation guidée': ['Méditation plus longue', 'Verset apaisant']
+        };
+
+        function addMessage(text, isUser = false, hasVerse = false) {
+            // Supprimer les anciennes suggestions pour éviter l'accumulation
+            const oldSuggestions = document.querySelectorAll('.quick-actions');
+            oldSuggestions.forEach(suggestion => suggestion.remove());
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+            if (hasVerse) {
+                messageDiv.innerHTML = `
+                    ${text}
+                    <div class="verse-quote">
+                        ${hasVerse.verse}
+                        <div class="verse-reference">${hasVerse.reference}</div>
+                        <button onclick="playAudio('${hasVerse.reference}')" class="text-xs text-yellow-400 mt-2 hover:underline">Écouter</button>
+                    </div>
+                `;
+            } else {
+                messageDiv.textContent = text;
+            }
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            messageDiv.appendChild(timeDiv);
+            chatMessages.appendChild(messageDiv);
+
+            // Ajouter des suggestions
+            const lowerText = text.toLowerCase();
+            const suggestionKey = Object.keys(spiritualResponses).find(key => lowerText.includes(key)) || 'default';
+            const suggestionList = suggestions[suggestionKey] || ['Conseil du jour', 'Verset motivant'];
+            const suggestionDiv = document.createElement('div');
+            suggestionDiv.className = 'quick-actions';
+            suggestionList.forEach(suggestion => {
+                const btn = document.createElement('div');
+                btn.className = 'quick-action';
+                btn.textContent = suggestion;
+                btn.onclick = () => sendQuickMessage(suggestion);
+                suggestionDiv.appendChild(btn);
+            });
+            chatMessages.appendChild(suggestionDiv);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            localStorage.setItem('chatHistory', chatMessages.innerHTML);
+            updateLightScore();
+        }
+
+        function showTypingIndicator() {
+            if (!document.getElementById('typingIndicator')) {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator';
+                typingDiv.id = 'typingIndicator';
+                typingDiv.innerHTML = `
+                    <div class="typing-dots">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                    <span style="margin-left: 5px; font-size: 12px; color: #b8b8d4;">MISBAH réfléchit...</span>
+                `;
+                chatMessages.appendChild(typingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        function hideTypingIndicator() {
+            const typingDiv = document.getElementById('typingIndicator');
+            if (typingDiv) typingDiv.remove();
+        }
+
+        function getAIResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            for (const [key, response] of Object.entries(versesResponses)) {
+                if (lowerMessage.includes(key)) {
+                    return { text: response.text, verse: response };
+                }
+            }
+            for (const [key, response] of Object.entries(spiritualResponses)) {
+                if (lowerMessage.includes(key)) {
+                    return { text: response };
+                }
+            }
+            return { text: 'SubhanAllah, je vous encourage à consulter un imam pour des questions complexes. Récitez "Rabbana atina fi\'d-dunya hasanatan" pour la paix.' };
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            addMessage(message, true);
+            messageInput.value = '';
+            sendBtn.disabled = true;
+            showTypingIndicator();
+            lightScoreValue = Math.min(100, lightScoreValue + 5);
+            localStorage.setItem('lightScoreValue', lightScoreValue);
+            setTimeout(() => {
+                hideTypingIndicator();
+                const response = getAIResponse(message);
+                addMessage(response.text, false, response.verse);
+                if (response.verse) speakResponse(response.verse.verse);
+                sendBtn.disabled = false;
+                messageInput.focus();
+            }, 1500);
+        }
+
+        function sendQuickMessage(message) {
+            messageInput.value = message;
+            sendMessage();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') sendMessage();
+        }
+
+        function goBack() {
+            localStorage.setItem('lightScoreValue', lightScoreValue);
+            window.location.href = 'index.html';
+        }
+
+        function playAudio(reference) {
+            const ayahNumber = reference.match(/\d+:\d+/)?.[0].split(':')[1] || 35;
+            const audio = new Audio(`https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayahNumber}.mp3`);
+            audio.play().catch(() => alert('Erreur de lecture audio. Vérifiez votre connexion.'));
+            lightScoreValue = Math.min(100, lightScoreValue + 5);
+            localStorage.setItem('lightScoreValue', lightScoreValue);
+            updateLightScore();
+        }
+
+        function speakResponse(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'fr-FR';
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function startDhikr() {
+            if (dhikrInterval) return; // Éviter plusieurs intervalles
+            dhikrSeconds = 0;
+            dhikrInterval = setInterval(() => {
+                dhikrSeconds++;
+                lightScoreValue = Math.min(100, lightScoreValue + 1);
+                localStorage.setItem('lightScoreValue', lightScoreValue);
+                dhikrTimerDisplay.textContent = `Dhikr: ${dhikrSeconds}s`;
+                addMessage(`Dhikr en cours... Score de lumière : ${lightScoreValue}%`, false);
+            }, 1000);
+        }
+
+        function stopDhikr() {
+            clearInterval(dhikrInterval);
+            dhikrInterval = null;
+            dhikrSeconds = 0;
+            dhikrTimerDisplay.textContent = `Dhikr: 0s`;
+            addMessage('Dhikr terminé. SubhanAllah !', false);
+        }
+
+        function updateLightScore() {
+            lightScoreDisplay.textContent = `Lumière: ${lightScoreValue}%`;
+        }
+
+        function showHistory() {
+            const history = localStorage.getItem('chatHistory') || 'Aucun historique.';
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-title').textContent = 'Historique';
+            document.getElementById('modal-body').innerHTML = `<div class="max-h-64 overflow-y-auto">${history}</div>`;
+            modal.style.display = 'flex';
+        }
+
+        function showSettings() {
+            const level = localStorage.getItem('spiritualLevel') || 'Débutant';
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-title').textContent = 'Paramètres';
+            document.getElementById('modal-body').innerHTML = `
+                <label class="block text-gray-300 mb-2">Niveau spirituel :</label>
+                <select id="spiritualLevel" class="bg-white/10 text-white p-2 rounded w-full mb-4">
+                    <option value="Débutant" ${level === 'Débutant' ? 'selected' : ''}>Débutant</option>
+                    <option value="Avancé" ${level === 'Avancé' ? 'selected' : ''}>Avancé</option>
+                </select>
+                <button onclick="shareOnX()" class="bg-white/10 text-white px-4 py-2 rounded-full mb-2">Partager sur X</button>
+            `;
+            modal.style.display = 'flex';
+            document.getElementById('spiritualLevel').addEventListener('change', (e) => {
+                localStorage.setItem('spiritualLevel', e.target.value);
+            });
+        }
+
+        function hideModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function shareOnX() {
+            const lastMessage = chatMessages.lastChild?.textContent || 'Découvrez MISBAH !';
+            window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(lastMessage)}`, '_blank');
+        }
+
+        function toggleVoiceInput() {
+            if (isRecognizing) {
+                isRecognizing = false;
+                micBtn.style.background = 'linear-gradient(45deg, #ffd700, #ffeb3b)';
+                return;
+            }
+            startRecognition();
+        }
+
+        function startRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('Reconnaissance vocale non supportée. Utilisez Chrome.');
+                return;
+            }
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'fr-FR';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            recognition.start();
+            isRecognizing = true;
+            micBtn.style.background = 'linear-gradient(45deg, #ff4d4d, #ff9999)';
+            addMessage('Écoute en cours...', false);
+            recognition.onresult = (event) => {
+                const speechResult = event.results[0][0].transcript;
+                messageInput.value = speechResult;
+                sendMessage();
+                isRecognizing = false;
+                micBtn.style.background = 'linear-gradient(45deg, #ffd700, #ffeb3b)';
+            };
+            recognition.onerror = (event) => {
+                addMessage(`Erreur vocale : ${event.error}. Vérifiez votre micro.`, false);
+                isRecognizing = false;
+                micBtn.style.background = 'linear-gradient(45deg, #ffd700, #ffeb3b)';
+            };
+            recognition.onend = () => {
+                addMessage('Écoute terminée.', false);
+                isRecognizing = false;
+                micBtn.style.background = 'linear-gradient(45deg, #ffd700, #ffeb3b)';
+            };
+        }
+
+        function setLevel(level) {
+            localStorage.setItem('spiritualLevel', level);
+            addMessage(`Niveau défini : ${level}. Comment puis-je vous aider maintenant ?`, false);
+        }
+
+        function createFloatingParticles() {
+            const particles = document.querySelectorAll('.particle');
+            particles.forEach(particle => {
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
+                particle.style.animationDelay = Math.random() * 8 + 's';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            createFloatingParticles();
+            updateLightScore();
+            const initialMessage = localStorage.getItem('chatMessage');
+            if (initialMessage) {
+                messageInput.value = initialMessage;
+                sendMessage();
+                localStorage.removeItem('chatMessage');
+            }
+            if ('Notification' in window && Notification.permission !== 'granted') {
+                Notification.requestPermission();
+            }
+            setInterval(() => {
+                if (Notification.permission === 'granted') {
+                    new Notification('MISBAH', { body: 'Temps de dhikr ou prière !' });
+                }
+            }, 3600000); // Toutes les heures
+            chatMessages.innerHTML = localStorage.getItem('chatHistory') || '';
+            messageInput.focus();
+        });
+
+        messageInput.addEventListener('input', () => {
+            sendBtn.style.background = messageInput.value.trim() ?
+                'linear-gradient(45deg, #ffd700, #ffeb3b)' :
+                'rgba(255, 215, 0, 0.3)';
+        });
+    </script>
+</body>
+</html>
